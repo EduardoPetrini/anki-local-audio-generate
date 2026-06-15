@@ -1,0 +1,10 @@
+{
+  "name": "Kokoro Local Audio",
+  "package": "kokoro_local_audio",
+  "human_version": "1.1.0",
+  "mod": 0,
+  "conflicts": [],
+  "min_point_version": 50,
+  "max_point_version": 0,
+  "homepage": "https://github.com/remsky/Kokoro-FastAPI"
+}
