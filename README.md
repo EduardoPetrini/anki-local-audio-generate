@@ -65,7 +65,16 @@ You should get a playable `test.wav`. If this works, the add-on will work.
 
 ## Installing the add-on
 
-### Option A — Manual install (recommended for local use)
+### Option A — Download the prebuilt `.ankiaddon` (easiest)
+
+Grab the latest `kokoro_local_audio.ankiaddon` from the
+[**Releases page**](https://github.com/EduardoPetrini/anki-local-audio-generate/releases).
+Each release is built automatically from `main`.
+
+In Anki: **Tools → Add-ons → Install from file…** and select the downloaded
+`kokoro_local_audio.ankiaddon`, then restart.
+
+### Option B — Manual install (recommended for local use)
 
 Copy the `kokoro_local_audio/` folder into your Anki add-ons directory and
 restart Anki.
@@ -84,7 +93,7 @@ cp -R kokoro_local_audio "$HOME/Library/Application Support/Anki2/addons21/"
 Then restart Anki. You should see a **🔊** button in the editor toolbar when
 adding or editing a note.
 
-### Option B — Install the packaged `.ankiaddon`
+### Option C — Build the package yourself
 
 Build a distributable package and install it through Anki's UI:
 
