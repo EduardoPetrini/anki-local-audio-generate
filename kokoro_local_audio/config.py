@@ -22,7 +22,13 @@ _DEFAULTS = {
     "timeout_seconds": 60,
     "shortcut": "",
     "play_on_generate": True,
+    "speed": 1.0,
 }
+
+# Kokoro accepts a playback speed multiplier in this range (OpenAI-compatible
+# ``speed`` parameter). Values outside it are clamped before each request.
+SPEED_MIN = 0.25
+SPEED_MAX = 4.0
 
 
 @dataclass(frozen=True)
@@ -36,6 +42,12 @@ class Config:
     timeout_seconds: int
     shortcut: str
     play_on_generate: bool
+    speed: float
+
+
+def clamp_speed(speed: float) -> float:
+    """Constrain a speed multiplier to the range Kokoro accepts."""
+    return max(SPEED_MIN, min(SPEED_MAX, speed))
 
 
 def get_config() -> Config:
@@ -54,4 +66,13 @@ def get_config() -> Config:
         timeout_seconds=int(value("timeout_seconds")),
         shortcut=str(raw.get("shortcut") or ""),
         play_on_generate=bool(raw.get("play_on_generate", _DEFAULTS["play_on_generate"])),
+        speed=clamp_speed(_coerce_speed(value("speed"))),
     )
+
+
+def _coerce_speed(raw_speed) -> float:
+    """Read a speed value, falling back to the default if it isn't a number."""
+    try:
+        return float(raw_speed)
+    except (TypeError, ValueError):
+        return float(_DEFAULTS["speed"])

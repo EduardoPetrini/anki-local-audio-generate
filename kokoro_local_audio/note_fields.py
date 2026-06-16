@@ -49,6 +49,21 @@ def _resolve_field(note: Note, preferred: str) -> str:
     return names[0]
 
 
+def active_field_name(note: Note, field_index: int | None) -> str | None:
+    """Return the note's field name at ``field_index``, or ``None``.
+
+    ``field_index`` comes from the editor's last-focused field and may be
+    ``None`` (no field focused) or out of range (e.g. after a notetype change),
+    in which case there is no usable active field and ``None`` is returned.
+    """
+    if field_index is None:
+        return None
+    names = note.keys()
+    if 0 <= field_index < len(names):
+        return names[field_index]
+    return None
+
+
 def read_source_text(note: Note, source_field: str) -> str:
     """Return the speakable plain text of the source field.
 
@@ -70,7 +85,13 @@ def insert_sound_tag(note: Note, target_field: str, filename: str) -> None:
     note[field] = f"{existing} {tag}".strip() if existing else tag
 
 
-def sound_filename(text: str, voice: str) -> str:
-    """Build a deterministic, collision-resistant media filename."""
-    digest = hashlib.sha1(f"{voice}:{text}".encode("utf-8")).hexdigest()[:12]
+def sound_filename(text: str, voice: str, speed: float) -> str:
+    """Build a deterministic, collision-resistant media filename.
+
+    The speed is part of the digest so the same text rendered at different
+    speeds yields distinct files instead of one overwriting the other.
+    """
+    digest = hashlib.sha1(
+        f"{voice}:{speed:g}:{text}".encode("utf-8")
+    ).hexdigest()[:12]
     return f"kokoro-{voice}-{digest}.wav"

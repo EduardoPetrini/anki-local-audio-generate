@@ -1,9 +1,10 @@
 # Kokoro Local Audio — Anki Add-on
 
-Add a one-click **🔊 button** to the Anki note editor that turns the text in
-your card's front field into speech using a **Kokoro TTS server running locally
-on your own machine**. The generated audio is saved into your collection's
-media and a `[sound:...]` tag is inserted into the card, so it plays during
+Add a **🔊 button** to the Anki note editor that turns the text in the field
+you're editing into speech using a **Kokoro TTS server running locally on your
+own machine**. Pick a playback speed from the button's menu (slow it down for
+language practice), and the generated audio is saved into your collection's
+media with a `[sound:...]` tag inserted into the card, so it plays during
 review like any other Anki audio.
 
 No cloud services, no API keys, no telemetry — the add-on only talks to the
@@ -13,15 +14,19 @@ Kokoro server you run yourself (default `http://localhost:8080`).
 
 ## How it works
 
-1. You open the **Add** (or **Edit**) note window and click the **🔊** button in
-   the editor toolbar.
-2. The add-on reads the text from the **source field** (default: `Front`),
-   strips the HTML, and POSTs it to your local Kokoro server's
-   `/v1/audio/speech` endpoint — exactly like the bundled [`generate.sh`](generate.sh).
+1. You open the **Add** (or **Edit**) note window, click into the field you want
+   audio for, then click the **🔊** button and pick a **speed** from its menu
+   (the configured `speed` is the default).
+2. The add-on reads the text from the **field you last focused** (e.g. `Back` if
+   that's where your cursor was), strips the HTML, and POSTs it to your local
+   Kokoro server's `/v1/audio/speech` endpoint — exactly like the bundled
+   [`generate.sh`](generate.sh).
 3. The returned WAV audio is written into Anki's media folder with a stable,
-   collision-resistant filename.
-4. A `[sound:<file>.wav]` tag is appended to the **target field** (default:
-   `Front`).
+   collision-resistant filename (the speed is part of it, so the same text at
+   different speeds doesn't collide).
+4. A `[sound:<file>.wav]` tag is appended to that **same field**. If no field is
+   focused, the configured `source_field`/`target_field` (default `Front`) are
+   used instead.
 
 If the Kokoro server is not reachable, you get a clear message explaining that
 Kokoro is not running and where to install it — nothing is written to your note.
@@ -97,10 +102,12 @@ In Anki: **Tools → Add-ons → Install from file…** and select
 
 1. Start your local Kokoro server.
 2. In Anki, open **Add** (or edit an existing note).
-3. Type the text into the **Front** field.
-4. Click the **🔊** button.
+3. Click into the field you want audio for (e.g. **Front** or **Back**) and type
+   your text.
+4. Click the **🔊** button and choose a **speed** from the menu (e.g. `0.7×` to
+   slow it down for a new language).
 5. A short progress dialog appears; when it finishes, the `[sound:...]` tag is
-   added to the field and a tooltip confirms it. Play it back with the standard
+   added to that field and a tooltip confirms it. Play it back with the standard
    Anki audio controls or during review.
 
 ---
@@ -113,10 +120,11 @@ Open **Tools → Add-ons → Kokoro Local Audio → Config**.
 | --- | --- | --- |
 | `server_url` | `http://localhost:8080` | Base URL of your local Kokoro server. |
 | `voice` | `ff_siwis` | Kokoro voice id (e.g. `af_heart`, `am_adam`, `ff_siwis`). |
-| `source_field` | `Front` | Field whose text is synthesized. Falls back to the note's first field if absent. |
-| `target_field` | `Front` | Field the `[sound:...]` tag is appended to. Falls back to the first field. |
+| `source_field` | `Front` | Fallback field synthesized **only when no field is focused**. Normally the focused field is used. Falls back to the note's first field if absent. |
+| `target_field` | `Front` | Fallback field the `[sound:...]` tag is appended to when no field is focused; otherwise the focused field is used. |
 | `timeout_seconds` | `60` | How long to wait for the server before giving up. |
 | `shortcut` | `""` | Optional keyboard shortcut, e.g. `Ctrl+Shift+K`. Empty = none. |
+| `speed` | `1.0` | Default playback speed, pre-selected in the 🔊 button's speed menu. The menu offers `0.7×`–`1.3×`, where speech still sounds natural; Kokoro slows audio by stretching phoneme durations, so lower values sound robotic. Set any value `0.25`–`4.0` here and it's added to the menu too. |
 
 Changes take effect immediately after saving — no restart needed.
 

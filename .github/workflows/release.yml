@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need full history so we can see existing tags
+
+      - name: Read add-on version
+        id: version
+        run: echo "version=$(jq -r .human_version kokoro_local_audio/manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether this version was already released
+        id: tag
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "v${{ steps.version.outputs.version }} already released — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build .ankiaddon package
+        if: steps.tag.outputs.exists == 'false'
+        run: |
+          cd kokoro_local_audio
+          zip -r ../kokoro_local_audio.ankiaddon . -x '__pycache__/*' '*.DS_Store'
+
+      - name: Create GitHub release
+        if: steps.tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: kokoro_local_audio.ankiaddon

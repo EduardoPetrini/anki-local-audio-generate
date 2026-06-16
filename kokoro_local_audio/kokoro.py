@@ -12,6 +12,8 @@ import urllib.error
 import urllib.request
 from typing import TYPE_CHECKING
 
+from .config import clamp_speed
+
 if TYPE_CHECKING:
     from .config import Config
 
@@ -37,15 +39,22 @@ def _not_running_message(server_url: str, detail: str) -> str:
     )
 
 
-def synthesize(text: str, cfg: "Config") -> bytes:
+def synthesize(text: str, cfg: "Config", speed: float | None = None) -> bytes:
     """Synthesize ``text`` to WAV audio bytes using the Kokoro server.
+
+    Args:
+        speed: playback speed multiplier; falls back to ``cfg.speed`` when
+            ``None``. Clamped to the range Kokoro accepts before sending.
 
     Raises:
         KokoroUnavailable: the server is not reachable (e.g. not running).
         KokoroError: the server responded with an error status or no audio.
     """
+    effective_speed = clamp_speed(cfg.speed if speed is None else speed)
     url = cfg.server_url + SPEECH_ENDPOINT
-    payload = json.dumps({"text": text, "voice": cfg.voice}).encode("utf-8")
+    payload = json.dumps(
+        {"text": text, "voice": cfg.voice, "speed": effective_speed}
+    ).encode("utf-8")
     request = urllib.request.Request(
         url,
         data=payload,
